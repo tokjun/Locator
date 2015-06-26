@@ -125,30 +125,32 @@ class LocatorWidget(ScriptedLoadableModuleWidget):
 
   def onLocatorActive(self):
 
-    removeList = {}
+    hideList = {}
     for i in range(self.nLocators):
       tnode = self.transformSelector[i].currentNode()
       if self.locatorActiveCheckBox[i].checked == True:
         if tnode:
           self.transformSelector[i].setEnabled(False)
-          self.logic.addLocator(tnode)
-          mnodeID = tnode.GetAttribute('Locator')
-          removeList[mnodeID] = False
+          mnodeID = self.logic.showLocator(tnode)
+          hideList[mnodeID] = False
         else:
           self.locatorActiveCheckBox[i].setChecked(False)
           self.transformSelector[i].setEnabled(True)
       else:
         if tnode:
           mnodeID = tnode.GetAttribute('Locator')
-          if mnodeID != None and not (mnodeID in removeList):
-            removeList[mnodeID] = True
-            self.logic.unlinkLocator(tnode)
+          if mnodeID != None:
+            if (mnodeID in hideList) and hideList[mnodeID] == False:
+              hideList[mnodeID] = False
+            else:
+              hideList[mnodeID] = True
         self.transformSelector[i].setEnabled(True)
 
-    for k, v in removeList.iteritems():
+    for k, v in hideList.iteritems():
+      print hideList
       if v:
         pass
-        #self.logic.removeLocator(k)
+        self.logic.hideLocator(k)
       
 
   def onReload(self, moduleName="Locator"):
@@ -200,22 +202,44 @@ class LocatorLogic(ScriptedLoadableModuleLogic):
     self.widget = widget
 
 
-  def addLocator(self, tnode):
+  def showLocator(self, tnode):
     if tnode:
-      if tnode.GetAttribute('Locator') == None:
-        needleModelID = self.createNeedleModelNode("Needle_%s" % tnode.GetName())
-        needleModel = self.scene.GetNodeByID(needleModelID)
-        needleModel.SetAndObserveTransformNodeID(tnode.GetID())
-        tnode.SetAttribute('Locator', needleModelID)
+      mnodeID = tnode.GetAttribute('Locator')
+      if mnodeID == None or self.scene.GetNodeByID(mnodeID) == None:
+        mnodeID = self.createNeedleModelNode("Needle_%s" % tnode.GetName())
+        mnode = self.scene.GetNodeByID(mnodeID)
+        mnode.SetAndObserveTransformNodeID(tnode.GetID())
+        tnode.SetAttribute('Locator', mnodeID)
+      else:
+        mnode = self.scene.GetNodeByID(mnodeID)
+        dnodeID = mnode.GetDisplayNodeID()
+        if dnodeID:
+          dnode = self.scene.GetNodeByID(dnodeID)
+          if dnode:
+            self.scene.VisibilityOn()
+      return mnodeID
+    else:
+      return None
+          
+  #def showLocator(self, modelID)
+  #
+  #  if mnodeID != None:
+  #    print 'hidLocator(%s)' % mnodeID
+  #    mnode = self.scene.GetNodeByID(mnodeID)
+  #    if mnode:
+  #      print 'removing from the scene'
+  #      dnodeID = mnode.GetDisplayNodeID()
+  #      if dnodeID:
+  #        dnode = self.scene.GetNodeByID(dnodeID)
+  #        if dnode:
+  #          self.scene.VisibilityOff()
+  #
+  #        self.logic.addLocator(tnode)
 
-  def unlinkLocator(self, tnode):
-    if tnode:
-      print 'unlinkLocator(%s)' % tnode.GetID()
-      tnode.RemoveAttribute('Locator')
+  def hidLocator(self, modelID):
 
-  def removeLocator(self, mnodeID):
-    if mnodeID:
-      print 'removeLocator(%s)' % mnodeID
+    if mnodeID != None:
+      print 'hidLocator(%s)' % mnodeID
       mnode = self.scene.GetNodeByID(mnodeID)
       if mnode:
         print 'removing from the scene'
@@ -223,8 +247,8 @@ class LocatorLogic(ScriptedLoadableModuleLogic):
         if dnodeID:
           dnode = self.scene.GetNodeByID(dnodeID)
           if dnode:
-            self.scene.RemoveNode(dnode)
-        self.scene.RemoveNode(mnode)
+            self.scene.VisibilityOff()
+
 
   def onNewDeviceEvent(self, caller, event, obj=None):
 
@@ -247,7 +271,9 @@ class LocatorLogic(ScriptedLoadableModuleLogic):
               needleModel.InvokeEvent(slicer.vtkMRMLTransformableNode.TransformModifiedEvent)
               tnode.SetAttribute('Locator', needleModelID)
 
+
   def createNeedleModel(self, node):
+
     if node and node.GetClassName() == 'vtkMRMLIGTLTrackingDataBundleNode':
       n = node.GetNumberOfTransformNodes()
       print n
