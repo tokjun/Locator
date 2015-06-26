@@ -44,6 +44,7 @@ class LocatorWidget(ScriptedLoadableModuleWidget):
 
     self.logic = LocatorLogic(None)
     self.logic.setWidget(self)
+    self.nLocators = 5
 
     #--------------------------------------------------
     # For debugging
@@ -72,132 +73,47 @@ class LocatorWidget(ScriptedLoadableModuleWidget):
     # GUI components
     
     #
-    # Setup Area
+    # Registration Matrix Selection Area
     #
-    setupCollapsibleButton = ctk.ctkCollapsibleButton()
-    setupCollapsibleButton.text = "Setup"
-    self.layout.addWidget(setupCollapsibleButton)
-
-    # Layout within the dummy collapsible button
-    setupFormLayout = qt.QFormLayout(setupCollapsibleButton)
-
-    #
-    # input volume selector
-    #
-    self.connectorSelector = slicer.qMRMLNodeComboBox()
-    self.connectorSelector.nodeTypes = ( ("vtkMRMLIGTLConnectorNode"), "" )
-    self.connectorSelector.selectNodeUponCreation = True
-    self.connectorSelector.addEnabled = True
-    self.connectorSelector.removeEnabled = False
-    self.connectorSelector.noneEnabled = False
-    self.connectorSelector.showHidden = False
-    self.connectorSelector.showChildNodeTypes = False
-    self.connectorSelector.setMRMLScene( slicer.mrmlScene )
-    self.connectorSelector.setToolTip( "Establish a connection with the server" )
-    setupFormLayout.addRow("Connector: ", self.connectorSelector)
+    selectionCollapsibleButton = ctk.ctkCollapsibleButton()
+    selectionCollapsibleButton.text = "Locator ON/OFF"
+    self.layout.addWidget(selectionCollapsibleButton)
+  
+    selectionFormLayout = qt.QFormLayout(selectionCollapsibleButton)
     
-    #self.connectorAddressLineEdit = qt.QLineEdit()
-    #self.connectorAddressLineEdit.text = "localhost"
-    #self.connectorAddressLineEdit.readOnly = False
-    #self.connectorAddressLineEdit.frame = True
-    #self.connectorAddressLineEdit.styleSheet = "QLineEdit { background:transparent; }"
-    #self.connectorAddressLineEdit.cursor = qt.QCursor(qt.Qt.IBeamCursor)
-    #setupFormLayout.addRow("Address: ", self.connectorAddressLineEdit)
+    self.transformSelector = []
+    self.locatorActiveCheckBox = []
 
-    self.connectorPort = qt.QSpinBox()
-    self.connectorPort.objectName = 'PortSpinBox'
-    self.connectorPort.setMaximum(64000)
-    self.connectorPort.setValue(18944)
-    self.connectorPort.setToolTip("Port number of the server")
-    setupFormLayout.addRow("Port: ", self.connectorPort)
+    for i in range(self.nLocators):
 
-    #
-    # check box to trigger transform conversion
-    #
-    self.activeCheckBox = qt.QCheckBox()
-    self.activeCheckBox.checked = 0
-    self.activeCheckBox.setToolTip("Activate OpenIGTLink connection")
-    setupFormLayout.addRow("Active: ", self.activeCheckBox)
-    
-    ##
-    ## Registration Matrix Selection Area
-    ##
-    #selectionCollapsibleButton = ctk.ctkCollapsibleButton()
-    #selectionCollapsibleButton.text = "Registration Matrix Selection"
-    #self.layout.addWidget(selectionCollapsibleButton)
-    #
-    #selectionFormLayout = qt.QFormLayout(selectionCollapsibleButton)
-    #
-    #self.regIDLineEdit = qt.QLineEdit()
-    #self.regIDLineEdit.text = ''
-    #self.regIDLineEdit.readOnly = True
-    #self.regIDLineEdit.frame = True
-    #self.regIDLineEdit.styleSheet = "QLineEdit { background:transparent; }"
-    #self.regIDLineEdit.cursor = qt.QCursor(qt.Qt.IBeamCursor)
-    #
-    #self.freLineEdit = qt.QLineEdit()
-    #self.freLineEdit.text = 'FRE not available'
-    #self.freLineEdit.readOnly = True
-    #self.freLineEdit.frame = True
-    #self.freLineEdit.styleSheet = "QLineEdit { background:transparent; }"
-    #self.freLineEdit.cursor = qt.QCursor(qt.Qt.IBeamCursor)
-    #
-    #currentRegLayout = qt.QHBoxLayout()
-    #currentIDLabel = qt.QLabel('ID:')
-    #currentFRELabel = qt.QLabel('  FRE:')
-    #currentUnitLabel = qt.QLabel('mm')
-    #currentRegLayout.addWidget(currentIDLabel)
-    #currentRegLayout.addWidget(self.regIDLineEdit)
-    #currentRegLayout.addWidget(currentFRELabel)
-    #currentRegLayout.addWidget(self.freLineEdit)
-    #currentRegLayout.addWidget(currentUnitLabel)
-    #selectionFormLayout.addRow("Current:", currentRegLayout)
-    #
-    #self.newRegIDLineEdit = qt.QLineEdit()
-    #self.newRegIDLineEdit.text = ''
-    #self.newRegIDLineEdit.readOnly = True
-    #self.newRegIDLineEdit.frame = True
-    #self.newRegIDLineEdit.styleSheet = "QLineEdit { background:transparent; }"
-    #self.newRegIDLineEdit.cursor = qt.QCursor(qt.Qt.IBeamCursor)
-    #
-    #self.newFreLineEdit = qt.QLineEdit()
-    #self.newFreLineEdit.text = 'FRE not available'
-    #self.newFreLineEdit.readOnly = True
-    #self.newFreLineEdit.frame = True
-    #self.newFreLineEdit.styleSheet = "QLineEdit { background:transparent; }"
-    #self.newFreLineEdit.cursor = qt.QCursor(qt.Qt.IBeamCursor)
-    #
-    #newRegLayout = qt.QHBoxLayout()
-    #newIDLabel = qt.QLabel('ID:')
-    #newFRELabel = qt.QLabel('  FRE:')
-    #newUnitLabel = qt.QLabel('mm')
-    #newRegLayout.addWidget(newIDLabel)
-    #newRegLayout.addWidget(self.newRegIDLineEdit)
-    #newRegLayout.addWidget(newFRELabel)
-    #newRegLayout.addWidget(self.newFreLineEdit)
-    #newRegLayout.addWidget(newUnitLabel)
-    #selectionFormLayout.addRow("New:", newRegLayout)
-    #
-    #self.acceptButton = qt.QPushButton("Accept New")
-    #self.acceptButton.toolTip = "Accept new registration"
-    #self.acceptButton.enabled = False
-    #selectionFormLayout.addRow(self.acceptButton)
-    #
-    #self.rejectButton = qt.QPushButton("Use Current")
-    #self.rejectButton.toolTip = "Reject new registration and use current one"
-    #self.rejectButton.enabled = False
-    #selectionFormLayout.addRow(self.rejectButton)
-    #
-    #matrixSelectionLayout = qt.QHBoxLayout()
-    #matrixSelectionLayout.addWidget(self.acceptButton)
-    #matrixSelectionLayout.addWidget(self.rejectButton)
-    #selectionFormLayout.addRow(matrixSelectionLayout)
+      self.transformSelector.append(slicer.qMRMLNodeComboBox())
+      selector = self.transformSelector[i]
+      selector.nodeTypes = ( ("vtkMRMLLinearTransformNode"), "" )
+      selector.selectNodeUponCreation = True
+      selector.addEnabled = False
+      selector.removeEnabled = False
+      selector.noneEnabled = False
+      selector.showHidden = False
+      selector.showChildNodeTypes = False
+      selector.setMRMLScene( slicer.mrmlScene )
+      selector.setToolTip( "Establish a connection with the server" )
+
+      self.locatorActiveCheckBox.append(qt.QCheckBox())
+      checkbox = self.locatorActiveCheckBox[i]
+      checkbox.checked = 0
+      checkbox.text = ' '
+      checkbox.setToolTip("Activate locator")
+
+      transformLayout = qt.QHBoxLayout()
+      transformLayout.addWidget(selector)
+      transformLayout.addWidget(checkbox)
+      selectionFormLayout.addRow("Locator #%d:" % i, transformLayout)
+
+      checkbox.connect('toggled(bool)', self.onLocatorActive)
 
     #--------------------------------------------------
     # connections
     #
-    self.connectorSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onConnectorSelect)
-    self.activeCheckBox.connect('toggled(bool)', self.onActive)
 
     # Add vertical spacer
     self.layout.addStretch(1)
@@ -207,33 +123,33 @@ class LocatorWidget(ScriptedLoadableModuleWidget):
     pass
 
 
-  def onActive(self):
-    
-    if self.connectorSelector.currentNode() == None:
-      return
+  def onLocatorActive(self):
 
-    if self.activeCheckBox.checked == True:
-      if self.logic.connected() != True:
-        # Setup connector
-        #addr  = self.connectorAddressLineEdit.text
-        port  = self.connectorPort.value
-        #self.logic.connectToServer(addr, port)
-        self.logic.waitForClient(port)
-    else:
-      self.logic.disconnect()
+    removeList = {}
+    for i in range(self.nLocators):
+      tnode = self.transformSelector[i].currentNode()
+      if self.locatorActiveCheckBox[i].checked == True:
+        if tnode:
+          self.transformSelector[i].setEnabled(False)
+          self.logic.addLocator(tnode)
+          mnodeID = tnode.GetAttribute('Locator')
+          removeList[mnodeID] = False
+        else:
+          self.locatorActiveCheckBox[i].setChecked(False)
+          self.transformSelector[i].setEnabled(True)
+      else:
+        if tnode:
+          mnodeID = tnode.GetAttribute('Locator')
+          if mnodeID != None and not (mnodeID in removeList):
+            removeList[mnodeID] = True
+            self.logic.unlinkLocator(tnode)
+        self.transformSelector[i].setEnabled(True)
 
-    #time.sleep(1)
-    #self.updateGUI()
-
-
-  def onConnectorSelect(self):
-    cnode = self.connectorSelector.currentNode()    
-    self.logic.setConnector(cnode)
-
-
-  def onRejectRegistration(self):
-    self.logic.acceptNewMatrix(self, False)
-
+    for k, v in removeList.iteritems():
+      if v:
+        pass
+        #self.logic.removeLocator(k)
+      
 
   def onReload(self, moduleName="Locator"):
     # Generic reload method for any scripted module.
@@ -245,17 +161,18 @@ class LocatorWidget(ScriptedLoadableModuleWidget):
   def updateGUI(self):
     # Enable/disable GUI components based on the state machine
 
-    #if self.logic.connected():
-    if self.logic.active():
-      self.activeCheckBox.setChecked(True)
-    else:
-      self.activeCheckBox.setChecked(False)
-
-    # Enable/disable 'Active' checkbox 
-    if self.connectorSelector.currentNode():
-      self.activeCheckBox.setEnabled(True)
-    else:
-      self.activeCheckBox.setEnabled(False)
+    ##if self.logic.connected():
+    #if self.logic.active():
+    #  self.activeCheckBox.setChecked(True)
+    #else:
+    #  self.activeCheckBox.setChecked(False)
+    #
+    ## Enable/disable 'Active' checkbox 
+    #if self.connectorSelector.currentNode():
+    #  self.activeCheckBox.setEnabled(True)
+    #else:
+    #  self.activeCheckBox.setEnabled(False)
+    pass
 
 
 
@@ -270,7 +187,6 @@ class LocatorLogic(ScriptedLoadableModuleLogic):
 
     self.scene = slicer.mrmlScene
     self.scene.AddObserver(slicer.vtkMRMLScene.NodeRemovedEvent, self.onNodeRemovedEvent)
-
     self.widget = None
 
     self.eventTag = {}
@@ -284,124 +200,31 @@ class LocatorLogic(ScriptedLoadableModuleLogic):
     self.widget = widget
 
 
-  def setConnector(self, cnode):
+  def addLocator(self, tnode):
+    if tnode:
+      if tnode.GetAttribute('Locator') == None:
+        needleModelID = self.createNeedleModelNode("Needle_%s" % tnode.GetName())
+        needleModel = self.scene.GetNodeByID(needleModelID)
+        needleModel.SetAndObserveTransformNodeID(tnode.GetID())
+        tnode.SetAttribute('Locator', needleModelID)
 
-    if cnode == None:
-      self.connectorNodeID = ''
-      return
+  def unlinkLocator(self, tnode):
+    if tnode:
+      print 'unlinkLocator(%s)' % tnode.GetID()
+      tnode.RemoveAttribute('Locator')
 
-    if self.connectorNodeID != cnode.GetID():
-      if self.connectorNodeID != '':
-        self.deactivateEvent()
-      self.connectorNodeID = cnode.GetID()
-      self.activateEvent()
-
-  def connectToServer(self, addr, port):
-
-    if self.connectorNodeID == '':
-      return
-
-    cnode = self.scene.GetNodeByID(self.connectorNodeID)
-
-    cnode.SetTypeClient(addr, port)
-    cnode.Start()
-
-
-  def waitForClient(self, port):
-  
-    if self.connectorNodeID == '':
-      return
-
-    cnode = self.scene.GetNodeByID(self.connectorNodeID)
-
-    cnode.SetTypeServer(port)
-    cnode.Start()
-
-
-    
-  def disconnect(self):
-
-    cnode = self.scene.GetNodeByID(self.connectorNodeID)
-    
-    if cnode == None:
-      return False
-
-    cnode.Stop()
-
-  def active(self):
-    # Check the activation status.
-    # Return True, if the connector is connected to the server
-
-    cnode = self.scene.GetNodeByID(self.connectorNodeID)
-
-    if cnode == None:
-      return False
-      
-    if cnode.GetState() == slicer.vtkMRMLIGTLConnectorNode.STATE_WAIT_CONNECTION or cnode.GetState() == slicer.vtkMRMLIGTLConnectorNode.STATE_CONNECTED:
-      return True
-    else:
-      return False
-    
-    cnode = self.scene.GetNodeByID(self.connectorNodeID)
-
-  def connected(self):
-    # Check the connection status.
-    # Return True, if the connector is connected to the server
-
-    cnode = self.scene.GetNodeByID(self.connectorNodeID)
-
-    if cnode == None:
-      return False
-      
-    if cnode.GetState() == slicer.vtkMRMLIGTLConnectorNode.STATE_CONNECTED:
-      return True
-    else:
-      return False
-
-  def onMessageReceived(self, node):
-    pass
-    # A message handler for the Tracking state.
-    # Return True, if the message has been processed
-
-    #print "onMessageReceivedTracking(self, node)"
-    
-    #if node.GetNodeTagName() == 'IGTLStatus' and node.GetName() == 'CUR_REG':
-    #
-    #  if node.GetCode() == slicer.vtkMRMLIGTLStatusNode.STATUS_OK:
-    #    # Current registration matrix ID is received
-    #    self.currentRegID = node.GetErrorName()
-    #
-    #  elif node.GetCode() == slicer.vtkMRMLIGTLStatusNode.STATUS_CONFIG_ERROR:
-    #    # Registration has not been completed
-    #    self.currentRegID = ''
-    #
-    #  return True
-    #
-    #elif node.GetNodeTagName() == 'IGTLStatus' and node.GetName() == 'NEW_REG':
-    #  
-    #  if node.GetCode() == slicer.vtkMRMLIGTLStatusNode.STATUS_OK:
-    #    self.widget.updateGUI()          
-    #      
-    #  return True
-    #
-    #else:
-    #
-    #  return False
-    pass
-    
-
-
-  def onConnectedEvent(self, caller, event):
-    #if self.widget != None:
-    #  self.widget.updateGUI()
-    pass
-
-
-  def onDisconnectedEvent(self, caller, event):
-    #if self.widget != None:
-    #  self.widget.updateGUI()
-    pass
-
+  def removeLocator(self, mnodeID):
+    if mnodeID:
+      print 'removeLocator(%s)' % mnodeID
+      mnode = self.scene.GetNodeByID(mnodeID)
+      if mnode:
+        print 'removing from the scene'
+        dnodeID = mnode.GetDisplayNodeID()
+        if dnodeID:
+          dnode = self.scene.GetNodeByID(dnodeID)
+          if dnode:
+            self.scene.RemoveNode(dnode)
+        self.scene.RemoveNode(mnode)
 
   def onNewDeviceEvent(self, caller, event, obj=None):
 
@@ -499,10 +322,6 @@ class LocatorLogic(ScriptedLoadableModuleLogic):
     return locatorModel.GetID()
 
 
-  def onIncomingNodeModifiedEvent(self, caller, event):
-    self.onMessageReceived(caller)
-
-
   def onNodeRemovedEvent(self, caller, event, obj=None):
     delkey = ''
     if obj == None:
@@ -516,19 +335,3 @@ class LocatorLogic(ScriptedLoadableModuleLogic):
       del self.eventTag[delkey]
 
 
-  def activateEvent(self):
-    cnode = self.scene.GetNodeByID(self.connectorNodeID)    
-    if cnode != None:
-      self.tagConnected = cnode.AddObserver(slicer.vtkMRMLIGTLConnectorNode.ConnectedEvent, self.onConnectedEvent)
-      self.tagDisconnected = cnode.AddObserver(slicer.vtkMRMLIGTLConnectorNode.DisconnectedEvent, self.onDisconnectedEvent)
-      self.tagNewDevice = cnode.AddObserver(slicer.vtkMRMLIGTLConnectorNode.NewDeviceEvent, self.onNewDeviceEvent)
-
-
-  def deactivateEvent(self):
-    cnode = self.scene.GetNodeByID(self.connectorNodeID)
-    if cnode != None:
-      cnode.RemoveObserver(self.tagConnected)
-      cnode.RemoveObserver(self.tagDisconnected)
-      cnode.RemoveObserver(self.tagNewDevice)
-
-      
