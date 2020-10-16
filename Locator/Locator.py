@@ -210,15 +210,15 @@ class LocatorLogic(ScriptedLoadableModuleLogic):
 
   def unlinkLocator(self, tnode):
     if tnode:
-      print 'unlinkLocator(%s)' % tnode.GetID()
+      print('unlinkLocator(%s)' % tnode.GetID())
       tnode.RemoveAttribute('Locator')
 
   def removeLocator(self, mnodeID):
     if mnodeID:
-      print 'removeLocator(%s)' % mnodeID
+      print('removeLocator(%s)' % mnodeID)
       mnode = self.scene.GetNodeByID(mnodeID)
       if mnode:
-        print 'removing from the scene'
+        print('removing from the scene')
         dnodeID = mnode.GetDisplayNodeID()
         if dnodeID:
           dnode = self.scene.GetNodeByID(dnodeID)
@@ -230,7 +230,7 @@ class LocatorLogic(ScriptedLoadableModuleLogic):
 
     cnode = self.scene.GetNodeByID(self.connectorNodeID)
     nInNode = cnode.GetNumberOfIncomingMRMLNodes()
-    print nInNode
+    print(nInNode)
     for i in range (nInNode):
       node = cnode.GetIncomingMRMLNode(i)
       if not node.GetID() in self.eventTag:
@@ -240,7 +240,7 @@ class LocatorLogic(ScriptedLoadableModuleLogic):
           for id in range (n):
             tnode = node.GetTransformNode(id)
             if tnode and tnode.GetAttribute('Locator') == None:
-              print "No Locator"
+              print("No Locator")
               needleModelID = self.createNeedleModelNode("Needle_%s" % tnode.GetName())
               needleModel = self.scene.GetNodeByID(needleModelID)
               needleModel.SetAndObserveTransformNodeID(tnode.GetID())
@@ -250,7 +250,7 @@ class LocatorLogic(ScriptedLoadableModuleLogic):
   def createNeedleModel(self, node):
     if node and node.GetClassName() == 'vtkMRMLIGTLTrackingDataBundleNode':
       n = node.GetNumberOfTransformNodes()
-      print n
+      print(n)
       for id in range (n):
         tnode = node.GetTransformNode(id)
         if tnode:
